@@ -1,53 +1,61 @@
 import AdminJS from "adminjs";
-import AadminJSFastify from "@adminjs/fastify";
+import AdminJSFastify from "@adminjs/fastify";
 import * as AdminJSMongoose from '@adminjs/mongoose'
 import * as Models from '../models/index.js'
+import { authenticate, COOKIE_PASSWORD } from "./config.js";
 
-AdminJS.registerAdadpter(AdminJSMongoose)
+AdminJS.registerAdapter(AdminJSMongoose)
 
 export const admin = new AdminJS({
   resources: [
-  {
-  resource: Models.Customer,
-  options: {
-    listproperties: ["phone", "role","isActivated"],
-    filterproperties: ["phone","role"],
-  },
-  },
-  {
-    resource: Models.DeliveryPartner,
-    options: {
-      listproperties: ["email", "role","isActivated"],
-      filterproperties: ["email","role"],
+    {
+      resource: Models.Customer,
+      options: {
+        listProperties: ["phone", "role", "isActivated"],
+        filterProperties: ["phone", "role"],
+      },
     },
-  },
-  {
-    resource: Models.Admin,
-    options: {
-      listproperties: ["email", "role","isActivated"],
-      filterproperties: ["email","role"],
+    {
+      resource: Models.DeliveryPartner,
+      options: {
+        listProperties: ["email", "role", "isActivated"],
+        filterProperties: ["email", "role"],
+      },
     },
+    {
+      resource: Models.Admin,
+      options: {
+        listProperties: ["email", "role", "isActivated"],
+        filterProperties: ["email", "role"],
+      },
+    },
+    {
+      resource: Models.Branch    
+    },
+  ],
+  branding: {
+    companyName: "Blinkit",
+    withMadeWithLove: false,
   },
-  {
-    resource: Models.Branch    
-  },
-],
-     branding:{
-         companyName: "Blinkit",
-         withMadeWithLove: false,
-   },
-  rootPath:"/admin",
+  rootPath: "/admin",
 });
 
-export const buildAdminRouter = async(app)=>{
+export const buildAdminRouter = async (app) => {
   await AdminJSFastify.buildAuthenticatedRouter(
     admin,
     {
-
+      authenticate,
+      cookiePassword: COOKIE_PASSWORD,
+      cookieName: "adminjs"
     },
     app,
     {
-
+      saveUninitialized: true,
+      secret: COOKIE_PASSWORD,
+      cookie: {
+        httpOnly: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production",
+      },
     },
-  )
-}
+  );
+};
